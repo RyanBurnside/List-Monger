@@ -17,7 +17,7 @@
 (in-package :ltk)
 
 ;;; My custom result box that returns a scrolled box dialog
-(load "ResultBox.lisp")
+(load "result-box.lisp")
 
 (defparameter *window-width* 640)
 (defparameter *window-height* 480)
