@@ -275,23 +275,29 @@ This is free software released under GPL v 3." "Info" "ok" "info"))
 	(lines2 (line-list widget2)))
     (result-box "Result of Intersection Operation (order not preserved)" 
 		:default
-		(line-list-to-string (intersection lines1 lines2 
-						   :test #'string=)))))
+		(line-list-to-string (sort
+				      (intersection lines1 lines2 
+						    :test #'string=)
+				      #'string<)))))
 
 (defun find-union (widget widget2)
   (let ((lines1 (line-list widget))
 	(lines2 (line-list widget2)))
     (result-box "Result of Union Operation (order not preserved)" 
 		:default
-		(line-list-to-string (union lines1 lines2 :test #'string=)))))
+		(line-list-to-string (sort 
+				      (union lines1 lines2 :test #'string=)
+				      #'string<)))))
 
 (defun find-exclusive (widget widget2) ;TODO show differences by list
   (let ((lines1 (line-list widget))
 	(lines2 (line-list widget2)))
     (result-box "Result of Exclusive Operation (order not preserved)" 
 		:default
-		(line-list-to-string 
-		 (set-exclusive-or lines1 lines2 :test #'string=)))))
+		(line-list-to-string (sort
+				      (set-exclusive-or lines1 lines2 
+							:test #'string=)
+				      #'string=)))))
 
 (defun attach-list-menus (parent widget)
   "This populates the left and right menu for both lists"
@@ -390,11 +396,11 @@ This is free software released under GPL v 3." "Info" "ok" "info"))
       (make-menubutton mfile "Quit" (lambda () (setf *exit-mainloop* t)))
       (attach-list-menus mleft text1)
       (attach-list-menus mright text2)
-      (make-menubutton mboth "Intersection of Sets"
+      (make-menubutton mboth "Show Same Items"
 		       (lambda () (find-intersection text1 text2)))
-      (make-menubutton mboth "Union of Sets"
+      (make-menubutton mboth "Show Combined Items"
 		       (lambda () (find-union text1 text2)))
-      (make-menubutton mboth "Exclusion of Sets"
+      (make-menubutton mboth "Show Unshared Items"
 		       (lambda () (find-exclusive text1 text2)))
       
       (make-menubutton mhelp "Text Editing Keys" (lambda () (display-key-help)))
