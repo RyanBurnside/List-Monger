@@ -3,14 +3,9 @@
 ;;;; This is free and open source software!
 
 ;;;; TODO section
-; Regex searching and marking
+; Regex marking
 ; Line numbers for lists
-; More advanced dialogs (collect more information at once vs 3 commands)
-; Fix program freezing with "x"ing out of dialogs
-; Ensure pop up windows and all members are destroyed after function ends
-;;    (no memory leaks)
 ;; Possibly convert from making tons of list to tons of vectors for speed
-
 
 (defparameter *window-width* 640)
 (defparameter *window-height* 480)
