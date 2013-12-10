@@ -5,16 +5,9 @@
 ;;;; TODO section
 ; Regex marking
 ; Line numbers for lists
+;; single line text dialogs still freeze when clicking x
+;; when doing boolean comparisons color code where results came from
 ;; Possibly convert from making tons of list to tons of vectors for speed
-
-(defparameter *window-width* 640)
-(defparameter *window-height* 480)
-(defparameter *text-width* 40)
-(defparameter *text-color* 'Gray15)
-(defparameter *field-color* 'Ivory)
-(defparameter *select-background* 'DeepSkyBlue)
-(defparameter *highlight-color* 'DeepSkyBlue)
-(defparameter *highlight-thickness* 3)
 
 (defvar *compile-for-Linux* t) ;Unused, might handle pathnames and endlines
 
@@ -29,8 +22,16 @@
 (load "search-box.lisp")
 (load "text-input-with-check.lisp")
 
-;;; quick test of regex module
-(print (cl-ppcre:regex-replace-all "h.+d" "hello world" "mittens"))
+(defparameter *window-width* 600)
+(defparameter *window-height* 800)
+(defparameter *text-width* 40)
+(defparameter *text-color* 'Gray15)
+(defparameter *field-color* 'Ivory)
+(defparameter *select-background* 'DeepSkyBlue)
+(defparameter *highlight-color* 'DeepSkyBlue)
+(defparameter *select-background2* 'Orange)
+(defparameter *highlight-color2* 'Orange)
+(defparameter *highlight-thickness* 3)
 
 ;;; Defuns for list manipulation
 (defun scrub (string)
@@ -93,11 +94,9 @@ This is free software released under GPL v 3." "Info" "ok" "info"))
 
 (defun count-lines (widget)
   "Questionable method, counts newline characters"
-  (message-box (concatenate 'string "Lines: "
-			    (if (equal (scrub (text widget)) "")
-			        "0"
-				(write-to-string 
-				 (count #\newline (text widget))))) 
+  (message-box (concatenate 'string "Total Lines (blanks included): "
+			    (write-to-string 
+			     (count #\newline (text widget))) )
 	       "Line Count" "ok" "info"))
 
 (defun line-list (widget &optional (seperator #\Newline))
@@ -124,7 +123,7 @@ This is free software released under GPL v 3." "Info" "ok" "info"))
     (print "Terms collected, moving to replace in replace-text function...")
     (format t "Values: ~a ~a" term replacement)
     (setf (text widget)
-	  (if (or (= use-regex 0) (equal use-regex nil)) ;TCL both versions
+	  (if (or (equal use-regex 0) (equal use-regex nil)) ;TCL both versions
 	      (replace-all (text widget) term replacement :test #'char=)
 	      (replace-all-regex (text widget) term replacement)))))
 
@@ -238,7 +237,7 @@ This is free software released under GPL v 3." "Info" "ok" "info"))
       (setf (text widget)
 	    (line-list-to-string
 	     (loop for i in (line-list widget)
-		if (or (= use-regex 0) (equal use-regex nil)) ;Tk both versions
+		if (or (equal use-regex 0) (equal use-regex nil)) ;Tk both versions
 		  when (not (search str i)) 
 		  collect i
                   end
@@ -256,7 +255,7 @@ This is free software released under GPL v 3." "Info" "ok" "info"))
       (setf (text widget)
 	    (line-list-to-string
 	     (loop for i in (line-list widget)
-		if (or (= use-regex 0) (equal use-regex nil)) ;Tk both versions
+		if (or (equal use-regex 0) (equal use-regex nil)) ;Tk both versions
 		  when (search str i) 
 		    collect i
 		  end
@@ -344,14 +343,14 @@ This is free software released under GPL v 3." "Info" "ok" "info"))
 
 
 ;;; This defun configures the look and behavior for our text widgets
-(defun style-textbox (widget)
+(defun style-textbox (widget highlight-color select-background)
   "Configure the look and feel of a textbox widget"
   (configure (textbox widget) :width *text-width* 
-		 :highlightcolor *highlight-color* 
+		 :highlightcolor highlight-color
 		 :foreground *text-color*
 		 :background *field-color*
 		 :highlightthickness *highlight-thickness* 
-		 :selectbackground *select-background*
+		 :selectbackground select-background
 		 :undo t
 		 :maxundo 100
 		 :wrap "none")
@@ -369,8 +368,10 @@ This is free software released under GPL v 3." "Info" "ok" "info"))
   "The program exists within this function"
   (with-ltk ()
     (let* ((frame (make-instance 'frame))
-	   (text1 (make-instance 'scrolled-text)) ;Text field left
-	   (text2 (make-instance 'scrolled-text)) ;Text field right
+	   (pane (make-instance 'paned-window))
+	   (text1 (make-instance 'scrolled-text :master pane)) ;Text field left
+	   (text2 (make-instance 'scrolled-text :master pane)) ;Text field right
+	   
 	   (m (make-menubar)) ; Main menu bar
 	   (mfile (make-menu m "File")) ;File menu
            (medit (make-menu m "Edit")) ;Edit menu
@@ -380,6 +381,7 @@ This is free software released under GPL v 3." "Info" "ok" "info"))
 	   (mhelp (make-menu m "Help")))
       (make-menubutton mfile "Load Left List" 
 		       (lambda () (read-file-to-list text1)))
+      
       (make-menubutton mfile "Load Right List"
 		       (lambda () (read-file-to-list text2)))
       (add-separator mfile) 
@@ -402,12 +404,19 @@ This is free software released under GPL v 3." "Info" "ok" "info"))
       (make-menubutton mhelp "About" (lambda () (display-info)))
       (set-geometry *tk* *window-width* *window-height* 0 0)
       (wm-title *tk* "List Monger")
+      (configure pane :orient :horizontal :showhandle t
+		 :borderwidth 0 :sashrelief :raised)
       (pack frame :side :bottom)      
-      (pack text1 :expand 1 :fill :both :side :left)
-      (pack text2 :expand 1 :fill :both :side :right)
+      (add-pane pane text1)
+      (add-pane pane text2)
+      ;(pack text1 :expand 1 :fill :both :side :left)
+      ;(pack text2 :expand 1 :fill :both :side :right)
+      (pack pane :expand 1 :fill :both)
       (configure medit :tearoff t)
-      (style-textbox text1)
-      (style-textbox text2)
+      (configure mleft  :activebackground *select-background*)
+      (configure mright :activebackground *select-background2*)
+      (style-textbox text1 *highlight-color* *select-background*)
+      (style-textbox text2 *highlight-color2* *select-background2*)
       (configure frame :relief :sunken))))
 
 ;;;Start program
