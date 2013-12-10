@@ -5,11 +5,10 @@
 ;;;; TODO section
 ; Regex marking
 ; Line numbers for lists
-;; single line text dialogs still freeze when clicking x
+;; single line text dialogs still freeze when clicking x (built in from ltk)
 ;; when doing boolean comparisons color code where results came from
 ;; Possibly convert from making tons of list to tons of vectors for speed
-
-(defvar *compile-for-Linux* t) ;Unused, might handle pathnames and endlines
+;; Sort funciton has no clue that 10...100...50 is not correctly sorted...
 
 ;; Yeah, this is for personal configuration, config yours as needed
 ;; Assumes that you have quicklisp loaded into your REPL at startup
@@ -409,10 +408,11 @@ This is free software released under GPL v 3." "Info" "ok" "info"))
       (pack frame :side :bottom)      
       (add-pane pane text1)
       (add-pane pane text2)
-      ;(pack text1 :expand 1 :fill :both :side :left)
-      ;(pack text2 :expand 1 :fill :both :side :right)
+      (configure text1 :expand 1 :fill :both :side :left :width 40)
+      (configure text2 :expand 1 :fill :both :side :right :width 40)
       (pack pane :expand 1 :fill :both)
       (configure medit :tearoff t)
+      
       (configure mleft  :activebackground *select-background*)
       (configure mright :activebackground *select-background2*)
       (style-textbox text1 *highlight-color* *select-background*)
